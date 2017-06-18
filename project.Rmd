@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 # classfication of manner
-The goal of this project is to predict the manner by using data collected by exercise devices. Attributes will be used are the ones related to belt, forearm, arm, and dumbell of 6 participants in dataset.Predictions are 5 manners in training dataset. RamdomForest will be used in this task. Pertentially, other an assembled model can be used in this task with other algorithms (GBM, SVM, LDA).
+The goal of this project is to predict the manner by using data collected by exercise devices. Attributes will be used are the ones related to belt, forearm, arm, and dumbell of 6 participants in dataset.Predictions are 5 manners in training dataset. RamdomForest will be used in this task. Pertentially, other an assembled model can be used in this task with other algorithms (GBM, SVM, LDA). 10 folds cross validation is used in this analysis in order to avoid over-fitting.
 
 ### Load Library and Data
 ```{r echo = FALSE}
@@ -76,21 +76,34 @@ cvTest <- training[-inTrain, ]
 fitCtrl <- trainControl(method = "repeatedcv", number = 10, repeats = 10)
 ```
 
-### modelling in RandomForest
-As practice, I used other methods to build a model. I don't display them as they take a large space in the analysis. RandomForest performs well here.
+### machine learning algorithm
+As practice, I used other methods to build a model. I don't display them as they take a large space in the analysis. RandomForest performs well here. Large number of trees will result better accuracy. However, it takes more resources and time to process. I use 20 trees based on condition of my computer. Preprocess is required here to improve accuracy as tree model are sensitive to scaled numeric data.
 ```{r}
 set.seed(321)
 rfFit <- train(classe ~ ., data = cvTrain, method = 'rf', ntree = 20, preProcess = c('center', 'scale'), trControl = fitCtrl)
 ```
 
-### Prediction is created by using the trained model.
+### Prediction on test data is created by using the trained model.
 ```{r}
 rfPred <- predict(rfFit, cvTest)
 ```
 
 ### Validation on testing dataset.
 ```{r}
-confusionMatrix(rfPred, cvTest$classe)
+cm <- confusionMatrix(rfPred, cvTest$classe)
+cm
+```
+
+### Out of sample error
+Expected out of sample error is 0.01. 
+```{r}
+sam.err <- round(1 - cm$overall['Accuracy'],2)
+sam.err
+```
+
+### Base on Cross validation result, the error will be around 0.012 by using all attributes.
+```{r}
+plot(rfFit)
 ```
 
 ### Prediction on Test
